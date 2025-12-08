@@ -1,0 +1,33 @@
+{
+  "name": "weaver-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "deploy": "node src/deploy-commands.js",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "axios": "^1.13.2",
+    "discord.js": "^14.25.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "node-cron": "^4.2.1",
+    "prom-client": "^15.1.3",
+    "winston": "^3.18.3"
+  },
+  "devDependencies": {
+    "dotenv-cli": "^11.0.0",
+    "eslint": "^9.39.1",
+    "nodemon": "^3.1.11",
+    "prisma": "^5.22.0"
+  }
+}
