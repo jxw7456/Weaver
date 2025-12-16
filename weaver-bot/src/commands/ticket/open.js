@@ -3,8 +3,15 @@ const logger = require('../../utils/logger');
 const { PrismaClient } = require('@prisma/client');
 const claudeService = require('../../services/claudeService');
 const faqSearchService = require('../../services/faqSearchService');
+const filter = require('leo-profanity');
 
 const prisma = new PrismaClient();
+
+// Optional: Add custom words
+// filter.add(['customword1', 'customword2']);
+
+// Optional: Remove false positives
+// filter.remove(['word1', 'word2']);
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -33,6 +40,16 @@ module.exports = {
         ),
     
     async execute(interaction) {
+        const subject = interaction.options.getString('subject');
+        
+        // Check for profanity
+        if (filter.check(subject)) {
+            return interaction.reply({
+                content: '⚠️ Your ticket subject contains inappropriate language. Please provide a professional description of your issue so our support team can assist you effectively.',
+                ephemeral: true
+            });
+        }
+
         try {
             // Get the forum channel
             const forumChannel = interaction.guild.channels.cache.get(process.env.FORUM_CHANNEL_ID);
