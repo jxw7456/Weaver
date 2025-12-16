@@ -24,8 +24,15 @@ model Ticket {
   assignedTo  String?
   createdAt   DateTime  @default(now())
   closedAt    DateTime?
-  escalatedAt DateTime? // NEW: Track when ticket was escalated
-  aiResponded Boolean   @default(false) // NEW: Track if AI sent initial response
+  escalatedAt DateTime?
+  aiResponded Boolean   @default(false)
+  
+  // New tracking fields
+  tracked     Boolean   @default(false)
+  trackedAt   DateTime?
+  trackedBy   String?
+  trackingNotes String?
+  notionPageId String?  // For future Notion integration
   
   messages    Message[]
   feedback    Feedback?
@@ -36,7 +43,7 @@ model Message {
   ticketId  Int
   authorId  String
   content   String
-  isAI      Boolean  @default(false) // NEW: Track AI-generated messages
+  isAI      Boolean  @default(false)
   createdAt DateTime @default(now())
   
   ticket    Ticket   @relation(fields: [ticketId], references: [id])
@@ -63,4 +70,20 @@ model FAQ {
   notHelpful Int      @default(0)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+// New model for tracked tickets queue
+model TrackedTicket {
+  id          Int      @id @default(autoincrement())
+  ticketId    Int      @unique
+  rating      Int
+  priority    String   @default("normal") // low, normal, high, urgent
+  status      String   @default("pending") // pending, in_review, resolved, exported
+  notes       String?
+  trackedBy   String
+  reviewedBy  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  exportedAt  DateTime? // When exported to Notion
+  notionPageId String?  // Notion page ID once exported
 }

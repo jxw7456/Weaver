@@ -20,7 +20,7 @@ for (const folder of commandFolders) {
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
-// Deploy commands to a specific guild
+// Deploy commands
 (async () => {
     try {
         console.log(`Deploying ${commands.length} application commands...`);

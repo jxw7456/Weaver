@@ -15,6 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@notionhq/client": "^5.6.0",
     "@prisma/client": "^5.22.0",
     "axios": "^1.13.2",
     "discord.js": "^14.25.0",
