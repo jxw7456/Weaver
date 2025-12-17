@@ -68,11 +68,11 @@ module.exports = {
                 
                 const feedbackEmbed = new EmbedBuilder()
                     .setTitle('📝 Ticket Feedback Request')
-                    .setDescription(`Your support ticket **"${ticket.subject}"** has been resolved.\n\nPlease provide your feedback by clicking the button below.`)
+                    .setDescription(`Your support ticket **"${ticket.subject}"** has been resolved.\n\nPlease rate your experience by clicking the button below.`)
                     .addFields(
-                        { name: '📁 Category', value: ticket.category, inline: true },
+                        { name: '📂 Category', value: ticket.category, inline: true },
                         { name: '🎫 Ticket ID', value: `#${ticket.id}`, inline: true },
-                        { name: '📝 Close Reason', value: reason }
+                        { name: '⭐ Rating Scale', value: '1 = Very Poor\n2 = Poor\n3 = Okay\n4 = Good\n5 = Excellent', inline: false }
                     )
                     .setColor(0x00AE86)
                     .setTimestamp();

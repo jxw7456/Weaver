@@ -7,12 +7,6 @@ const filter = require('leo-profanity');
 
 const prisma = new PrismaClient();
 
-// Optional: Add custom words
-// filter.add(['customword1', 'customword2']);
-
-// Optional: Remove false positives
-// filter.remove(['word1', 'word2']);
-
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('ticket')
@@ -80,7 +74,6 @@ module.exports = {
             // Defer reply since AI response may take a moment
             await interaction.deferReply({ ephemeral: true });
             
-            const subject = interaction.options.getString('subject');
             const category = interaction.options.getString('category');
             
             // Create embed for ticket
@@ -143,13 +136,14 @@ module.exports = {
             
             logger.info(`Ticket ${ticket.id} created by ${interaction.user.tag} - Subject: ${subject}`);
             
-            // Generate AI response asynchronously (don't block ticket creation)
-            this.generateAIResponse(thread, ticket, interaction.user.id, interaction.guild.id)
-                .catch(err => logger.error('Error generating AI response:', err));
-            
+            // Initial reply with loading message
             await interaction.editReply({
                 content: `✅ Ticket created: ${thread}\n\n🤖 Weaver is preparing a helpful response...`
             });
+            
+            // Generate AI response and update the reply when done
+            this.generateAIResponse(thread, ticket, interaction.user.id, interaction.guild.id, interaction)
+                .catch(err => logger.error('Error generating AI response:', err));
             
         } catch (error) {
             logger.error('Error creating ticket:', error);
@@ -165,8 +159,9 @@ module.exports = {
 
     /**
      * Generate and send AI response to the ticket
+     * @param {Object} interaction - The interaction to update after AI responds
      */
-    async generateAIResponse(thread, ticket, userId, guildId) {
+    async generateAIResponse(thread, ticket, userId, guildId, interaction = null) {
         try {
             // Fetch relevant FAQs based on ticket subject and category
             const relevantFAQs = await faqSearchService.findRelevantFAQs(
@@ -235,6 +230,18 @@ module.exports = {
             
             logger.info(`AI response sent for ticket ${ticket.id}`);
             
+            // Update the original interaction reply to remove loading message
+            if (interaction) {
+                try {
+                    await interaction.editReply({
+                        content: `✅ Ticket created: ${thread}`
+                    });
+                } catch (editError) {
+                    // Interaction may have expired, log but don't fail
+                    logger.warn(`Could not update interaction reply: ${editError.message}`);
+                }
+            }
+            
         } catch (error) {
             logger.error(`Failed to generate AI response for ticket ${ticket.id}:`, error);
             
@@ -248,6 +255,17 @@ module.exports = {
                     .setTimestamp();
                 
                 await thread.send({ embeds: [fallbackEmbed] });
+                
+                // Still update the interaction even on fallback
+                if (interaction) {
+                    try {
+                        await interaction.editReply({
+                            content: `✅ Ticket created: ${thread}`
+                        });
+                    } catch (editError) {
+                        logger.warn(`Could not update interaction reply: ${editError.message}`);
+                    }
+                }
             } catch (fallbackError) {
                 logger.error('Failed to send fallback response:', fallbackError);
             }

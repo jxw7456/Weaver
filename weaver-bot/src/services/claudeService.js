@@ -4,12 +4,64 @@ const logger = require('../utils/logger');
 const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
 const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
 
+// Documentation links by category
+const DOCUMENTATION_LINKS = {
+    'App Directory': {
+        helpCenter: 'https://support-dev.discord.com/hc/en-us/sections/31439707456663-Discovery',
+        apiDocs: 'https://discord.com/developers/docs/resources/application#application-object'
+    },
+    'App Name Change': {
+        helpCenter: 'https://support-dev.discord.com/hc/en-us/articles/6129090215959-How-Do-I-Change-My-Bot-s-Name',
+        apiDocs: 'https://discord.com/developers/docs/resources/application#edit-current-application'
+    },
+    'API & Gateway': {
+        helpCenter: 'https://support-dev.discord.com/hc/en-us/articles/6223003921559-My-Bot-is-Being-Rate-Limited',
+        apiDocs: 'https://discord.com/developers/docs/topics/gateway',
+        rateLimits: 'https://discord.com/developers/docs/topics/rate-limits'
+    },
+    'Developer Community Perks': {
+        helpCenter: 'https://support-dev.discord.com/hc/en-us/articles/10113997751447-Active-Developer-Badge',
+        apiDocs: 'https://discord.com/developers/docs/tutorials/developing-a-user-installable-app'
+    },
+    'Premium Apps': {
+        helpCenter: 'https://support-dev.discord.com/hc/en-us/sections/17294380054935-Monetization',
+        apiDocs: 'https://discord.com/developers/docs/monetization/overview'
+    },
+    'Social SDK': {
+        helpCenter: 'https://support-dev.discord.com/hc/categories/30608732211607',
+        apiDocs: 'https://discord.com/developers/docs/developer-tools/embedded-app-sdk'
+    },
+    'Teams & Ownership': {
+        helpCenter: 'https://support-dev.discord.com/hc/categories/360000656531',
+        apiDocs: 'https://discord.com/developers/docs/topics/teams'
+    },
+    'Verification & Intents': {
+        helpCenter: 'https://support-dev.discord.com/hc/en-us/sections/5324794669207-Privileged-Gateway-Intents',
+        apiDocs: 'https://discord.com/developers/docs/topics/gateway#gateway-intents',
+        privilegedIntents: 'https://discord.com/developers/docs/topics/gateway#privileged-intents'
+    },
+    'Webhooks': {
+        helpCenter: 'https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks',
+        apiDocs: 'https://discord.com/developers/docs/resources/webhook'
+    }
+};
+
 class ClaudeService {
     constructor() {
         this.apiKey = process.env.CLAUDE_API_KEY;
         if (!this.apiKey) {
             logger.warn('CLAUDE_API_KEY not set - AI features will be disabled');
         }
+    }
+
+    /**
+     * Get documentation links for a category
+     */
+    getDocsForCategory(category) {
+        return DOCUMENTATION_LINKS[category] || {
+            helpCenter: 'https://support-dev.discord.com/hc/en-us',
+            apiDocs: 'https://discord.com/developers/docs'
+        };
     }
 
     /**
@@ -62,10 +114,18 @@ Your goals:
 1. Warmly acknowledge the user's ticket and let them know a staff member will claim and assist them soon
 2. If relevant FAQs are provided that directly answer their question, share that information helpfully
 3. Encourage the user to provide additional helpful context while they wait (screenshots, error messages, API responses, application IDs, etc.)
-4. Be concise but warm - aim for 2-4 short paragraphs maximum
-5. Use Discord markdown formatting appropriately (bold, code blocks, etc.)
+4. **Always include relevant documentation links** from the Discord Help Center and/or Discord Developer Documentation when applicable
+5. Be concise but warm - aim for 2-4 short paragraphs maximum
+6. Use Discord markdown formatting appropriately (bold, code blocks, etc.)
+
+Documentation Link Guidelines:
+- Include links to relevant Discord Help Center articles (support.discord.com) when the issue relates to user-facing features or general questions
+- Include links to Discord Developer Documentation (discord.com/developers/docs) when the issue is technical or API-related
+- Format links naturally within your response, e.g., "You can find more information in the [Gateway documentation](https://discord.com/developers/docs/topics/gateway)"
+- Don't overwhelm with links - include 1-3 most relevant links maximum
 
 Guidelines:
+- Never try to obtain sensitive information (passwords, payment info, etc.)
 - Never make up information - only reference FAQs if they're provided and relevant
 - Don't promise specific response times
 - If the issue seems urgent or complex, acknowledge that and reassure them staff will help
@@ -95,13 +155,26 @@ You are NOT resolving the ticket - you're providing a helpful first response whi
      * Build the user prompt with ticket context
      */
     buildTicketPrompt(ticket, relevantFAQs, ticketHistory) {
+        const docs = this.getDocsForCategory(ticket.category);
+
         let prompt = `A new support ticket has been created. Please provide a helpful initial response.
 
         **Ticket Details:**
         - Subject: ${ticket.subject}
         - Category: ${ticket.category}
         - User ID: ${ticket.userId}
-        `;
+
+        **Relevant Documentation Links for this category:**
+        - Help Center: ${docs.helpCenter}
+        - API Documentation: ${docs.apiDocs}`;
+
+        // Add additional docs if available
+        if (docs.rateLimits) {
+            prompt += `\n- Rate Limits: ${docs.rateLimits}`;
+        }
+        if (docs.privilegedIntents) {
+            prompt += `\n- Privileged Intents: ${docs.privilegedIntents}`;
+        }
 
         if (ticketHistory.length > 0) {
             prompt += `\n**User's Previous Tickets (for context):**\n`;
@@ -120,7 +193,7 @@ You are NOT resolving the ticket - you're providing a helpful first response whi
             prompt += `\n*No directly relevant FAQs found for this ticket.*`;
         }
 
-        prompt += `\n\nGenerate a helpful initial response for this ticket:`;
+        prompt += `\n\nRemember to include 1-2 relevant documentation links naturally in your response. Generate a helpful initial response for this ticket:`;
         return prompt;
     }
 
@@ -145,6 +218,10 @@ You are NOT resolving the ticket - you're providing a helpful first response whi
         return `👋 Thanks for reaching out! Your ticket has been received and a support team member will claim it and assist you as soon as possible.
 
 While you wait, it would be helpful if you could share any additional context like **${tip}**. The more details you provide, the faster we can help!
+
+📚 **Helpful Resources:**
+• [Discord Help Center](${docs.helpCenter})
+• [Developer Documentation](${docs.apiDocs})
 
 We appreciate your patience! 🙏`;
     }
