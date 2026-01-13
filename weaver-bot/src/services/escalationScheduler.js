@@ -4,7 +4,7 @@ const { EmbedBuilder } = require('discord.js');
 const logger = require('../utils/logger');
 const claudeService = require('./claudeService');
 
-const prisma = new PrismaClient();
+const prisma = require('../utils/prisma');
 
 class EscalationScheduler {
     constructor(){
@@ -92,7 +92,7 @@ class EscalationScheduler {
             const escalationMessage = await claudeService.generateEscalationMessage(ticket);
 
             // Get the ticket channel/thread
-            const ticketChannel = await this.client.channels.fetch(ticket.channelID).catch(() => null);
+            const ticketChannel = await this.client.channels.fetch(ticket.channelId).catch(() => null);
 
             if (!ticketChannel) {
                 logger.warn(`Ticket channel not found for ticket ID: ${ticket.id}`);
@@ -129,7 +129,7 @@ class EscalationScheduler {
                     .setTitle('📋 Ticket Escalated')
                     .setDescription(`Ticket #${ticket.id} has been waiting over 24 hours without staff response.`)
                     .addFields(
-                        { name: 'Subject', value: ticket.subject },
+                        { name: 'Subject', value: ticket.subject.substring(0, 1024) },
                         { name: 'Category', value: ticket.category, inline: true },
                         { name: 'Wait Time', value: waitTime, inline: true },
                         { name: 'Thread', value: `<#${ticket.channelId}>`, inline: true }

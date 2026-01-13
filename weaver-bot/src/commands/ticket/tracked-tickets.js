@@ -2,7 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, Butt
 const { PrismaClient } = require('@prisma/client');
 const logger = require('../../utils/logger');
 
-const prisma = new PrismaClient();
+const prisma = require('../utils/prisma');
 
 // Command to manage tracked tickets for review
 module.exports = {
@@ -319,7 +319,7 @@ async function handleView(interaction) {
 
         const embed = new EmbedBuilder()
             .setTitle(`📋 Tracked Ticket #${ticketId}`)
-            .setDescription(`**Subject:** ${ticket.subject}`)
+            .setDescription(`**Subject:** ${ticket.subject.substring(0, 500)}`)
             .addFields(
                 { name: '📁 Category', value: ticket.category, inline: true },
                 { name: '⭐ Rating', value: ticket.feedback ? getStarRating(ticket.feedback.rating) : 'No feedback', inline: true },

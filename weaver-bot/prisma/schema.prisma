@@ -18,9 +18,9 @@ model Ticket {
   userId      String
   channelId   String    @unique
   guildId     String
-  subject     String
-  category    String
-  status      String    @default("open")
+  subject     String    @db.VarChar(200)
+  category    String    @db.VarChar(50)
+  status      String    @default("open") @db.VarChar(20)
   assignedTo  String?
   createdAt   DateTime  @default(now())
   closedAt    DateTime?
@@ -31,7 +31,7 @@ model Ticket {
   tracked     Boolean   @default(false)
   trackedAt   DateTime?
   trackedBy   String?
-  trackingNotes String?
+  trackingNotes String? @db.VarChar(500)
   notionPageId String?  // For future Notion integration
   
   messages    Message[]
@@ -42,7 +42,7 @@ model Message {
   id        Int      @id @default(autoincrement())
   ticketId  Int
   authorId  String
-  content   String
+  content   String   @db.Text 
   isAI      Boolean  @default(false)
   createdAt DateTime @default(now())
   
@@ -53,7 +53,7 @@ model Feedback {
   id        Int      @id @default(autoincrement())
   ticketId  Int      @unique
   rating    Int
-  comment   String?
+  comment   String?  @db.VarChar(1000)
   createdAt DateTime @default(now())
   
   ticket    Ticket   @relation(fields: [ticketId], references: [id])
@@ -61,10 +61,10 @@ model Feedback {
 
 model FAQ {
   id         Int      @id @default(autoincrement())
-  question   String
+  question   String   @db.VarChar(500)
   answer     String   @db.Text
-  category   String
-  keywords   String[] // Array for search functionality
+  category   String   @db.VarChar(50)
+  keywords   String[] 
   views      Int      @default(0)
   helpful    Int      @default(0)
   notHelpful Int      @default(0)
@@ -77,9 +77,9 @@ model TrackedTicket {
   id          Int      @id @default(autoincrement())
   ticketId    Int      @unique
   rating      Int
-  priority    String   @default("normal") // low, normal, high, urgent
-  status      String   @default("pending") // pending, in_review, resolved, exported
-  notes       String?
+  priority    String   @default("normal") @db.VarChar(10) // low, normal, high, urgent
+  status      String   @default("pending") @db.VarChar(20) // pending, in_review, resolved, exported
+  notes       String?  @db.VarChar(1000)
   trackedBy   String
   reviewedBy  String?
   createdAt   DateTime @default(now())

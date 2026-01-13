@@ -5,7 +5,9 @@ const claudeService = require('../../services/claudeService');
 const faqSearchService = require('../../services/faqSearchService');
 const filter = require('leo-profanity');
 
-const prisma = new PrismaClient();
+const prisma = require('../utils/prisma');
+const ticketCooldowns = new Map(); // Map to track user ticket cooldowns
+const COOLDOWN_MS = 30000; // 30 seconds
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -36,6 +38,14 @@ module.exports = {
     async execute(interaction) {
         const subject = interaction.options.getString('subject');
         
+        // Check subject length
+        if (subject.length > 100) {
+            return interaction.reply({
+                content: '⚠️ Subject must be 100 characters or less.',
+                ephemeral: true
+            });
+        }
+
         // Check for profanity
         if (filter.check(subject)) {
             return interaction.reply({
@@ -54,6 +64,19 @@ module.exports = {
                     ephemeral: true
                 });
             }
+
+            // Enforce ticket creation cooldown
+            const cooldownKey = interaction.user.id;
+            const lastTicket = ticketCooldowns.get(cooldownKey);
+
+            if (lastTicket && Date.now() - lastTicket < COOLDOWN_MS) {
+                const remaining = Math.ceil((COOLDOWN_MS - (Date.now() - lastTicket)) / 1000);
+                return interaction.reply({
+                    content: `⏳ Please wait ${remaining}s before creating another ticket.`,
+                    ephemeral: true
+                });
+            }
+            ticketCooldowns.set(cooldownKey, Date.now());
             
             // Check for existing open ticket in database
             const existingTicket = await prisma.ticket.findFirst({
@@ -79,7 +102,7 @@ module.exports = {
             // Create embed for ticket
             const embed = new EmbedBuilder()
                 .setTitle('🎫 Support Ticket')
-                .setDescription(`**Subject:** ${subject}\n**Category:** ${category}`)
+                .setDescription(`**Subject:** ${subject.substring(0, 200)}\n**Category:** ${category}`)
                 .addFields(
                     { name: 'User', value: `${interaction.user}`, inline: true },
                     { name: 'Status', value: '🟢 Open', inline: true },

@@ -2,7 +2,7 @@ const { Events, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Moda
 const logger = require('../utils/logger');
 const { PrismaClient } = require('@prisma/client');
 
-const prisma = new PrismaClient();
+const prisma = require('../utils/prisma');
 
 // Main interaction create handler
 module.exports = {
@@ -383,7 +383,7 @@ async function handleFeedbackSubmission(interaction) {
         try {
             const feedbackEmbed = new EmbedBuilder()
                 .setTitle('📊 Ticket Feedback Received')
-                .setDescription(`Feedback for ticket: **${ticket.subject}**`)
+                .setDescription(`Feedback for ticket: **${ticket.subject.substring(0, 200)}**`)
                 .addFields(
                     { name: '🎫 Ticket ID', value: `#${ticket.id}`, inline: true },
                     { name: '👤 User', value: `<@${ticket.userId}>`, inline: true },
@@ -565,7 +565,7 @@ async function handleTrackNotesSubmission(interaction) {
             .addFields(
                 { name: 'Priority', value: `${priorityEmoji[priority]} ${priority}`, inline: true },
                 { name: 'Rating', value: ticket.feedback ? getStarRating(ticket.feedback.rating) : 'No feedback', inline: true },
-                { name: 'Notes', value: notes || 'No notes' }
+                { name: 'Notes', value: (notes || 'No notes').substring(0, 1024) }
             )
             .setColor(0x00AE86).setTimestamp();
 

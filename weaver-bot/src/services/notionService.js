@@ -19,7 +19,7 @@
 const logger = require('../utils/logger');
 const { PrismaClient } = require('@prisma/client');
 
-const prisma = new PrismaClient();
+const prisma = require('../utils/prisma');
 
 // Notion API Configuration
 const NOTION_API_KEY = process.env.NOTION_API_KEY;

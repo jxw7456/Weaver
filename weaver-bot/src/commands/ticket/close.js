@@ -2,7 +2,7 @@ const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, ActionRowBuilder
 const { PrismaClient } = require('@prisma/client');
 const logger = require('../../utils/logger');
 
-const prisma = new PrismaClient();
+const prisma = require('../utils/prisma');
 
 // Command to close a ticket with optional reason and feedback modal
 module.exports = {
@@ -68,7 +68,7 @@ module.exports = {
                 
                 const feedbackEmbed = new EmbedBuilder()
                     .setTitle('📝 Ticket Feedback Request')
-                    .setDescription(`Your support ticket **"${ticket.subject}"** has been resolved.\n\nPlease rate your experience by clicking the button below.`)
+                    .setDescription(`Your support ticket **"${ticket.subject.substring(0, 150)}"** has been resolved.\n\nPlease rate your experience by clicking the button below.`)
                     .addFields(
                         { name: '📂 Category', value: ticket.category, inline: true },
                         { name: '🎫 Ticket ID', value: `#${ticket.id}`, inline: true },
