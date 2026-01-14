@@ -5,7 +5,7 @@ const claudeService = require('../../services/claudeService');
 const faqSearchService = require('../../services/faqSearchService');
 const filter = require('leo-profanity');
 
-const prisma = require('../utils/prisma');
+const prisma = require('../../utils/prisma');
 const ticketCooldowns = new Map(); // Map to track user ticket cooldowns
 const COOLDOWN_MS = 30000; // 30 seconds
 

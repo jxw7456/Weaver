@@ -2,7 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, Butt
 const { PrismaClient } = require('@prisma/client');
 const logger = require('../../utils/logger');
 
-const prisma = require('../utils/prisma');
+const prisma = require('../../utils/prisma');
 
 // Command to manage tracked tickets for review
 module.exports = {

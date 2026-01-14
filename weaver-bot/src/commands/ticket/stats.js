@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const { PrismaClient } = require('@prisma/client');
 
-const prisma = require('../utils/prisma');
+const prisma = require('../../utils/prisma');
 
 // Command to view ticket statistics
 module.exports = {

@@ -2,7 +2,7 @@ const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, ActionRowBuilder
 const { PrismaClient } = require('@prisma/client');
 const logger = require('../../utils/logger');
 
-const prisma = require('../utils/prisma');
+const prisma = require('../../utils/prisma');
 
 // Command to close a ticket with optional reason and feedback modal
 module.exports = {

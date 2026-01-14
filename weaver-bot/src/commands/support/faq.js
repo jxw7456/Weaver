@@ -2,7 +2,7 @@ const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBui
 const { PrismaClient } = require('@prisma/client');
 const logger = require('../../utils/logger');
 
-const prisma = require('../utils/prisma');
+const prisma = require('../../utils/prisma');
 
 // FAQ Command
 module.exports = {
