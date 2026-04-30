@@ -89,7 +89,7 @@ class EscalationScheduler {
     async escalateTicket(ticket) {
         try {
             // Generate escalation message using Claude
-            const escalationMessage = await claudeService.generateEscalationMessage(ticket);
+            const escalationMessage = await claudeService.generateEscalationReminder(ticket);
 
             // Get the ticket channel/thread
             const ticketChannel = await this.client.channels.fetch(ticket.channelId).catch(() => null);

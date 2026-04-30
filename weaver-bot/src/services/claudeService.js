@@ -201,6 +201,8 @@ You are NOT resolving the ticket - you're providing a helpful first response whi
      * Fallback response when Claude API is unavailable
      */
     getFallbackResponse(ticket) {
+        const docs = this.getDocsForCategory(ticket.category);
+
         const categoryTips = {
             'App Directory': 'app listing details, screenshots of any issues, or your application ID',
             'App Name Change': 'your current app name, desired new name, and application ID',

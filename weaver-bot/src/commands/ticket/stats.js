@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const { PrismaClient } = require('@prisma/client');
+const logger = require('../../utils/logger');
 
 const prisma = require('../../utils/prisma');
 
