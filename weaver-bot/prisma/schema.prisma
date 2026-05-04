@@ -91,23 +91,38 @@ model TrackedTicket {
 
 // New model for context escalations
 model Escalation {
-    id              Int       @id @default(autoincrement())
-    threadId        String    @unique
-    forumId         String
-    guildId         String
-    sourceChannelId String
-    sourceMessageId String    @unique  // dedupe — never escalate the same msg twice
-    sourceUrl       String
-    sourceContent   String    @db.Text
-    partnerUserId   String?
-    partnerUsername String?
-    partnerCompany  String?
-    triggeredBy     String
-    status          String    @default("open") @db.VarChar(20) // open | resolved
-    resolvedBy      String?
-    resolvedAt      DateTime?
-    createdAt       DateTime  @default(now())
-    updatedAt       DateTime  @updatedAt
+    id                 Int       @id @default(autoincrement())
+
+    // The triage thread (in Studio Connect or wherever the partner posted)
+    triageThreadId     String    @unique
+    triageGuildId      String
+    triageChannelId    String
+
+    // The original right-clicked message
+    sourceMessageId    String    @unique  // dedupe — one triage thread per message
+    sourceMessageUrl   String
+    sourceContent      String    @db.Text
+    sourceAuthorId     String?
+    sourceAuthorName   String?
+
+    // Set once the "Escalate" button is clicked
+    escalationThreadId String?   @unique
+    escalationGuildId  String?
+    escalationForumId  String?
+
+    // Metadata
+    partnerCompany     String?
+    triggeredBy        String    // who created the triage thread
+    escalatedBy        String?   // who clicked "Escalate" (null if not escalated)
+
+    status             String    @default("triage") @db.VarChar(20)
+    // triage | escalated | resolved
+
+    resolvedBy         String?
+    resolvedAt         DateTime?
+    createdAt          DateTime  @default(now())
+    escalatedAt        DateTime?
+    updatedAt          DateTime  @updatedAt
 
     @@index([status, createdAt])
     @@index([partnerCompany])

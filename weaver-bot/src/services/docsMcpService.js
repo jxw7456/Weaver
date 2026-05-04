@@ -12,8 +12,6 @@
  * Once those are confirmed, fill in queryDocs() — every call site already
  * handles a null/empty return, so flipping it on is just env vars and the
  * actual HTTP shape below.
- *
- * Ship Feature 1 with ENABLE_MCP_DRAFT unset; Automated Responses stays dark until ready.
  */
 const axios = require("axios");
 const logger = require("../utils/logger");

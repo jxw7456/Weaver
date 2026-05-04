@@ -65,6 +65,8 @@ module.exports = {
           content: "Use the dropdown menu to filter tickets.",
           ephemeral: true,
         });
+      } else if (customId.startsWith("escalation_send_")) {
+        await handleEscalateSend(interaction);
       } else if (customId.startsWith("escalation_resolve_")) {
         await handleEscalationResolve(interaction);
       }
@@ -1070,7 +1072,50 @@ async function handleFAQSelect(interaction) {
   }
 }
 
-// Handle escalation resolve button
+// Handle escalate to partner forum button
+async function handleEscalateSend(interaction) {
+  if (!(await hasStaffPermission(interaction))) {
+    return interaction.reply({
+      content: "❌ Only staff can escalate to partner-escalations.",
+      ephemeral: true,
+    });
+  }
+
+  await interaction.deferReply({ ephemeral: true });
+
+  const sourceMessageId = interaction.customId.replace("escalation_send_", "");
+  const escalationService = require("../services/escalationService");
+
+  const result = await escalationService.escalateToPartnerForum({
+    client: interaction.client,
+    sourceMessageId,
+    triggeredBy: interaction.user,
+  });
+
+  if (!result.success) {
+    return interaction.editReply({ content: `❌ ${result.error}` });
+  }
+
+  await interaction.editReply({
+    content:
+      `✅ Escalated to partner-escalations: ${result.threadUrl}\n` +
+      `New messages here will mirror over automatically.`,
+  });
+
+  // Disable the Escalate button on the original message so it can't be hit twice.
+  try {
+    const msg = interaction.message;
+    const newRow = ActionRowBuilder.from(msg.components[0]);
+    newRow.components[0] = ButtonBuilder.from(newRow.components[0])
+      .setDisabled(true)
+      .setLabel("Escalated");
+    await msg.edit({ components: [newRow] });
+  } catch (err) {
+    logger.debug(`Could not disable escalate button: ${err.message}`);
+  }
+}
+
+// Handle resolve escalation button
 async function handleEscalationResolve(interaction) {
   if (!(await hasStaffPermission(interaction))) {
     return interaction.reply({
@@ -1088,21 +1133,20 @@ async function handleEscalationResolve(interaction) {
   try {
     await escalationService.markResolved(sourceMessageId, interaction.user.id);
 
-    // Visually confirm + disable the button so it can't be clicked twice.
-    const disabledRow = ActionRowBuilder.from(
-      interaction.message.components[0],
-    );
-    disabledRow.components[0] = ButtonBuilder.from(
-      disabledRow.components[0],
+    // Visually confirm + disable the resolve button.
+    const newRow = ActionRowBuilder.from(interaction.message.components[0]);
+    const lastIdx = newRow.components.length - 1;
+    newRow.components[lastIdx] = ButtonBuilder.from(
+      newRow.components[lastIdx],
     ).setDisabled(true);
 
-    await interaction.update({ components: [disabledRow] });
+    await interaction.update({ components: [newRow] });
     await interaction.followUp({
       content: `✅ Escalation marked resolved by ${interaction.user}.`,
       ephemeral: false,
     });
 
-    // Optional: archive the thread now that it's done.
+    // Optional: archive the thread when resolved.
     if (interaction.channel?.isThread()) {
       await interaction.channel.setArchived(true).catch(() => {});
     }
